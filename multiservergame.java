@@ -1,0 +1,98 @@
+import java.io.*;
+import java.net.*;
+import java.util.Random;
+public class multiservergame {
+  public static void main(String[] args) throws Exception {
+    ServerSocket m_ServerSocket = new ServerSocket(8888);
+    int id = -1;
+
+	ClientServiceThread  [] cliThread=new ClientServiceThread[50];
+    while (true) {
+      Socket clientSocket = m_ServerSocket.accept();
+	  
+      cliThread[++id]=new ClientServiceThread(clientSocket, id);
+      cliThread[id].start();
+
+	  //System.out.println("test="+cliThread[id].test);//problem!
+
+	}
+  }
+}
+
+class ClientServiceThread extends Thread {
+  Socket clientSocket;
+  int clientID = 0;
+  boolean running = true;
+  int inputnum=50;	
+  Random ran=new Random();
+  int total=ran.nextInt(inputnum)+1;
+  //int test;
+	ClientServiceThread(Socket s, int i) {
+			clientSocket = s;
+			clientID = i;
+	}
+ boolean isInteger(String value) {
+   try {
+       Integer.parseInt(value);
+       return true;
+   }catch (NumberFormatException e) {
+       return false;
+   }
+}
+  public void run() {
+	 //synchronized(this){
+		  
+    System.out.println("Accepted Client : ID - " + clientID + " : Address - "
+        + clientSocket.getInetAddress().getHostName());
+    try {
+      BufferedReader   in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+      PrintWriter   out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+	  BufferedReader kin=new BufferedReader(new InputStreamReader(System.in));
+      while (running) {
+        String clientCommand = in.readLine();
+        System.out.println("Client "+clientID+" Says :" + clientCommand);
+		if(isInteger(clientCommand)&&Integer.parseInt(clientCommand)>0)
+		{
+		//System.out.println("yes");
+		//Random ran=new Random();
+		int input=Integer.parseInt(clientCommand);
+		//test=input;
+		if(total>input){
+			out.println("bigger");
+			System.out.println("bigger");
+		}
+		else if(total<input){
+			out.println("smaller");
+			System.out.println("smaller");
+		}
+		else if(total==input){
+			out.println("You are correct!!");
+			System.out.println("Client "+clientID+" win!!");
+		}
+		//int output=ran.nextInt(input)+1;
+		//System.out.println("I(server) Says :" +output);
+		
+		//out.println(Integer.toString(output));
+		//System.out.print("I(server) Says :");
+		//out.println(kin.readLine());
+		}
+		else{
+			out.println("error");
+		}
+        if (clientCommand.equalsIgnoreCase("quit")) {
+          running = false;
+          System.out.print("Stopping client thread for client : " + clientID);
+        } else {
+          //out.println(clientCommand);
+          out.flush();
+        }
+      
+	 }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+ //}
+}
+
